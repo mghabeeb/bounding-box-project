@@ -7,20 +7,27 @@
  */
 
 import React from 'react';
-import {SafeAreaView, StyleSheet, View, Image} from 'react-native';
-
+import {
+    SafeAreaView,
+    StyleSheet,
+    View,
+    ActivityIndicator,
+    Dimensions,
+    Image,
+} from 'react-native';
+import ImageZoom from 'react-native-image-pan-zoom';
 import TouchBtn from './components/TouchBtn';
 
 const data = require('./data.json');
 class App extends React.Component {
   //state object
-  state = {
-    imageWidth: '100%',
-    imageHeight: '100%',
-    imageOrigWidth: '100%',
-    imageOrigHeight: '100%',
-    btns: [],
-  };
+    state = {
+        imageWidth: '100%',
+        imageHeight: 'auto',
+        imageOrigWidth: '100%',
+        imageOrigHeight: '100%',
+        btns: [],
+    };
   componentDidMount() {
     this.getOrigSizes();
   }
@@ -77,15 +84,15 @@ class App extends React.Component {
       btns: data.bounding_data.word_data,
     });
   };
-  btnRenders = () => {
-    return this.state.btns.map((button, index) => (
-      <TouchBtn
-        onPress={() => alert(button.paragraph_id)}
-        key={index}
-        style={this.getAbsoluteCoordsSizes(button.bounding_box_data)}
-      />
-    ));
-  };
+    btnRenders = () => {
+        return this.state.btns.map((button, index) => (
+            <TouchBtn
+                onPress={() => alert(button.paragraph_id)}
+                key={index}
+                style={this.getAbsoluteCoordsSizes(button.bounding_box_data)}
+            />
+        ));
+    };
   getAbsoluteCoordsSizes = array => {
     let height = (array[3].y - array[0].y) * this.state.koefH;
     let width = (array[1].x - array[0].x) * this.state.koefW;
@@ -103,30 +110,36 @@ class App extends React.Component {
       <>
         <SafeAreaView>
           <View
-            style={{
-              width: '100%',
-              height: '100%',
-              borderColor: 'red',
-              borderWidth: 0,
-            }}>
+              style={styles.container}>
             {/*Wrapper*/}
-            <View
-              onLayout={this.onChangePositions}
-              style={{
-                height: '100%',
-                width: '100%',
-                overflow: 'hidden',
-              }}>
-              <Image
-                style={{
-                  height: this.state.imageHeight,
-                  width: this.state.imageWidth,
-                }}
-                resizeMethod={'scale'}
-                resizeMode={'cover'}
-                source={require('./imageExample.jpeg')}
-              />
-              {this.btnRenders()}
+              <View onLayout={this.onChangePositions} style={styles.mainWrapper}>
+                <ImageZoom
+                    style={{borderWidth: 2}}
+                    cropWidth={Dimensions.get('window').width}
+                    cropHeight={600}
+                    enableSwipeDown={true}
+                    enableCenterFocus={false}
+                    imageWidth={this.state.imageWidth}
+                    imageHeight={this.state.imageHeight}>
+                    {this.state.imageHeight !== 'auto' ? (
+                        <View style={{
+                                height: this.state.imageHeight,
+                                width: this.state.imageWidth,
+                            }}>
+                            <Image
+                                style={{
+                                    height: this.state.imageHeight,
+                                    width: this.state.imageWidth,
+                                }}
+                                resizeMode={'cover'}
+                                source={require('./imageExample.jpeg')}
+                            />
+                            {this.btnRenders()}
+                        </View>
+                    ) : (
+                        <ActivityIndicator size="large" color="green" />
+                    )}
+                </ImageZoom>
             </View>
           </View>
         </SafeAreaView>
@@ -135,6 +148,20 @@ class App extends React.Component {
   }
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+    mainWrapper: {
+        height: '100%',
+        width: '100%',
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    container: {
+        width: '100%',
+        height: '100%',
+        borderColor: 'red',
+        borderWidth: 0,
+    },
+});
 
 export default App;
